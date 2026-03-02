@@ -6,6 +6,11 @@ pipeline {
         PLAYWRIGHT_BROWSERS_PATH = "${env.WORKSPACE}\\ms-playwright"
     }
 
+    tools {
+        maven 'Maven3'     // Configure in Jenkins Global Tool Configuration
+        jdk 'JDK17'
+    }
+
     stages {
 
         stage('Checkout Code') {
@@ -21,9 +26,34 @@ pipeline {
             }
         }
 
-        stage('Run Playwright Java Tests') {
+        stage('Clean Build') {
             steps {
-                bat 'mvn clean test'
+                bat 'mvn clean'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                bat 'mvn test'
+            }
+        }
+
+        stage('Publish Test Results') {
+            steps {
+                junit 'target/surefire-reports/*.xml'
+            }
+        }
+
+        stage('Publish HTML Report') {
+            steps {
+                publishHTML([
+                    reportDir: 'target/surefire-reports',
+                    reportFiles: '*.html',
+                    reportName: 'Automation Test Report',
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true
+                ])
             }
         }
     }
@@ -31,6 +61,9 @@ pipeline {
     post {
         always {
             echo 'Pipeline finished'
+        }
+        success {
+            echo 'All tests passed successfully'
         }
         failure {
             echo 'Pipeline failed'
