@@ -1,0 +1,37 @@
+name: Playwright Java Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    env:
+      # Fix Playwright EPERM issue on Windows
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}\ms-playwright
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Verify Project
+        run: |
+          dir
+          dir pom.xml
+        shell: cmd
+
+      - name: Run Playwright Java Tests
+        run: mvn clean test
+        shell: cmd
